@@ -252,7 +252,7 @@ def main():
     # print(results)
 
     mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
-    np.savetxt(mtx_path, results, delimiter=',')
+    np.savetxt(mtx_path, results, delimiter=',', fmt='%.3f')
 
     ######load model######
     ######################
