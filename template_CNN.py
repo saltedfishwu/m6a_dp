@@ -67,8 +67,8 @@ def seq_to_mat(seq):
 #####################
 ##Load the data######
 #####################
-def load_data():
-    df = pd.read_csv("eif3a_full_40.csv")
+def load_data(path):
+    df = pd.read_csv(path)
 
     # print(df)
 
@@ -261,16 +261,31 @@ def prcurve(model, x_test, y_test):
 
 
 def main():
-    x_train, x_test, y_test, y_train = load_data()
-    model = build_model(x_train)
-    history = compileModel(model, x_train, x_test, y_test, y_train)
-    lossplot(history)
-    auc = roc(model, x_test, y_test)
-    prauc = prcurve(model, x_test, y_test)
-    mcc = MCC(model, x_test, y_test)
-    acc = ACC(model, x_test, y_test)
-    results = np.array([auc, prauc, mcc, acc])
-    np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-gene', dest='gene', default=None, type=str, help='select the gene')
+    parser.add_argument('-condition', dest='condition', default=None, type=str, help='select full or exon')
+    parser.add_argument('-length', dest='length', default=None, type=str, help='specify the sequence length 41/81/121')
+    args = parser.parse_args()
+
+    ## assign the input value to variables
+    gene = args.gene
+    condition = args.condition
+    length = args.length
+
+    # return the data path
+    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition,length)
+
+    x_train, x_test, y_test, y_train = load_data(data_path)
+    # model = build_model(x_train)
+    # history = compileModel(model, x_train, x_test, y_test, y_train)
+    # lossplot(history)
+    # auc = roc(model, x_test, y_test)
+    # prauc = prcurve(model, x_test, y_test)
+    # mcc = MCC(model, x_test, y_test)
+    # acc = ACC(model, x_test, y_test)
+    # results = np.array([auc, prauc, mcc, acc])
+    # np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',',fmt='%.3f')
 
 
 if __name__ == '__main__':
