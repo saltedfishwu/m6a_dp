@@ -1,4 +1,5 @@
 # To pkeras_model=None training, we import the necessary functions and submodules from keras
+import matplotlib
 import pandas as pd
 import numpy as np
 from keras.models import Sequential
@@ -13,11 +14,11 @@ from keras import regularizers
 from keras.callbacks import EarlyStopping, History, ModelCheckpoint
 from keras import backend as K
 
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import pyplot
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score, precision_recall_curve, auc
 
-# plt.use('Agg')
 from sklearn.model_selection import train_test_split
 
 K.set_image_data_format('channels_last')
@@ -156,7 +157,8 @@ def build_model(x_train):
                                    metrics=['accuracy', precision, recall])
     return one_filter_keras_model
 
-def compileModel(model, x_train, x_val, y_val, y_train):
+
+def compileModel(model, x_train, x_val, y_val, y_train, gene, condition, length):
     model = model
     x_train = x_train
     x_val = x_val
@@ -166,7 +168,9 @@ def compileModel(model, x_train, x_val, y_val, y_train):
                               min_delta=0,
                               patience=10,
                               verbose=1)
-
+    ##########################################
+    # file path need to be further explored
+    ##########################################
     filepath = "weights.best_encoding.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint, earlystop]
@@ -177,13 +181,16 @@ def compileModel(model, x_train, x_val, y_val, y_train):
     history = model.fit(x_train, y_train, batch_size=batchsize, epochs=epoch,
                         validation_data=(x_val, y_val),
                         callbacks=callbacks_list)
+    modelpath = '/home/yuxuan/dp/model/{}_{}_{}_best_model.h5'.format(gene, condition, length)
+    model.save(modelpath)
+
     return history
 
 
 # ################################
 # print('draw the loss plot')
 # ###############################
-def lossplot(history):
+def lossplot(history, gene, condition, length):
     ori_val_Loss = history.history['val_loss']
     loss = history.history['loss']
     epochs = np.arange(len(history.epoch)) + 1
@@ -195,25 +202,28 @@ def lossplot(history):
     plt.ylabel('Validation Loss')
     plt.legend()
     # plt.show()
-    plt.savefig('/home/yuxuan/dp/onehot/lossplot.png')
+    plt.savefig('/home/yuxuan/dp/onehot/{}_{}_{}_lossplot.png'.format(gene, condition, length))
     print("")
     print("The loss plot is saved \n")
 
-def MCC(model,x_val,y_val):
+
+def MCC(model, x_val, y_val):
     from sklearn.metrics import matthews_corrcoef
     yhat = model.predict_classes(x_val)
     mcc = matthews_corrcoef(y_val, yhat)
     print('MCC = {:.3f})'.format(mcc))
     return mcc
 
-def ACC(model,x_val,y_val):
+
+def ACC(model, x_val, y_val):
     from sklearn.metrics import accuracy_score
     yhat = model.predict_classes(x_val)
     acc = accuracy_score(y_val, yhat)
     print('ACC = {:.3f})'.format(acc))
     return acc
 
-def roc(model, x_val, y_val):
+
+def roc(model, x_val, y_val, gene, condition, length):
     print('Start drawing the roc curve \n')
     from sklearn.metrics import roc_curve
     from sklearn.metrics import auc
@@ -230,14 +240,13 @@ def roc(model, x_val, y_val):
     plt.title('ROC curve')
     plt.legend(loc='best')
 
-
     # plt.show()
     print('AUROC (area = {:.3f})'.format(auc_keras))
-    plt.savefig('/home/yuxuan/dp/onehot/ROC.png')
+    plt.savefig('/home/yuxuan/dp/onehot/{}_{}_{}_ROC.png'.format(gene, condition, length))
     return auc_keras
 
 
-def prcurve(model, x_val, y_val):
+def prcurve(model, x_val, y_val, gene, condition, length):
     lr_probs = model.predict_proba(x_val)
     lr_precision, lr_recall, _ = precision_recall_curve(y_val, lr_probs)
     lr_auc = auc(lr_recall, lr_precision)
@@ -256,7 +265,7 @@ def prcurve(model, x_val, y_val):
     pyplot.legend()
     # show the plot
     # pyplot.show()
-    plt.savefig('/home/yuxuan/dp/onehot/PRAUC.png')
+    plt.savefig('/home/yuxuan/dp/onehot/{}_{}_{}_PRAUC.png'.format(gene, condition, length))
     return lr_auc
 
 
@@ -274,18 +283,19 @@ def main():
     length = args.length
 
     # return the data path
-    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition,length)
+    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition, length)
 
     x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
-    # model = build_model(x_train)
-    # history = compileModel(model, x_train, x_val, y_val, y_train)
-    # lossplot(history)
-    # auc = roc(model, x_val, y_val)
-    # prauc = prcurve(model, x_val, y_val)
-    # mcc = MCC(model, x_val, y_val)
-    # acc = ACC(model, x_val, y_val)
-    # results = np.array([auc, prauc, mcc, acc])
-    # np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',',fmt='%.3f')
+    model = build_model(x_train)
+    history = compileModel(model, x_train, x_val, y_val, y_train, gene, condition, length)
+    lossplot(history, gene, condition, length)
+    auc = roc(model, x_val, y_val, gene, condition, length)
+    prauc = prcurve(model, x_val, y_val, gene, condition, length)
+    mcc = MCC(model, x_val, y_val)
+    acc = ACC(model, x_val, y_val)
+    results = np.array([auc, prauc, mcc, acc])
+    results = np.array([auc, prauc, mcc, acc])
+    np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',', fmt='%.3f')
 
 
 if __name__ == '__main__':
