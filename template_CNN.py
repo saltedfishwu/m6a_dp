@@ -77,12 +77,6 @@ def load_data(path):
     train_All_1 = df.iloc[:, 2]
     test_all_1 = df.iloc[:, 3]
 
-    pos_train_seq = train_All_1[0:711, ]
-    neg_train_seq = train_All_1[711:, ]
-    pos_test_seq = test_all_1[0:45, ]
-    neg_test_seq = test_all_1[45:90, ]
-
-    # %%
 
     X_train = np.array(train_All_1)
     # a = X_train[1]
@@ -107,8 +101,7 @@ def load_data(path):
     y_train = np.array([1, 0])
     y_train = y_train.repeat(711)
     y_train = np.mat(y_train).transpose()
-    # y_train = to_categorical(y_train)
-    # print(y_train)
+
 
     y_val = np.array([1, 0])
     y_val = y_val.repeat(45)
@@ -293,7 +286,6 @@ def main():
     prauc = prcurve(model, x_val, y_val, gene, condition, length)
     mcc = MCC(model, x_val, y_val)
     acc = ACC(model, x_val, y_val)
-    results = np.array([auc, prauc, mcc, acc])
     results = np.array([auc, prauc, mcc, acc])
     np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',', fmt='%.3f')
 
