@@ -172,8 +172,8 @@ def roc(model, x_val, y_val, gene, condition, encoding):
     print('AUROC (area = {:.3f})'.format(auc_keras))
     fig_path = '/home/yuxuan/dp/roc_plot/' + gene + '_' + condition + '_' + encoding + '.png'
     plt.savefig(fig_path)
-
-    return auc_keras
+    auc_keras = '%.3f' % auc_keras
+    return float(auc_keras)
 
 
 def prcurve(model, x_val, y_val, gene, condition, encoding):
@@ -197,7 +197,9 @@ def prcurve(model, x_val, y_val, gene, condition, encoding):
     # pyplot.show()
     fig_path = '/home/yuxuan/dp/pr_plot/' + gene + '_' + condition + '_' + encoding + '.png'
     plt.savefig(fig_path)
-    return lr_auc
+    lr_auc = '%.3f' % lr_auc
+
+    return float(lr_auc)
 
 
 def MCC(model, x_val, y_val):
@@ -205,7 +207,8 @@ def MCC(model, x_val, y_val):
     yhat = model.predict_classes(x_val)
     mcc = matthews_corrcoef(y_val, yhat)
     print('MCC = {:.3f}'.format(mcc))
-    return mcc
+    mcc = '%.3f' % mcc
+    return float(mcc)
 
 
 def ACC(model, x_val, y_val):
@@ -213,8 +216,8 @@ def ACC(model, x_val, y_val):
     yhat = model.predict_classes(x_val)
     acc = accuracy_score(y_val, yhat)
     print('ACC = {:.3f}'.format(acc))
-    acc = '%.3f'%acc
-    return acc
+    acc = '%.3f' % acc
+    return float(acc)
 
 
 def main():
@@ -246,10 +249,10 @@ def main():
     mcc = MCC(model, x_val, y_val)
     acc = ACC(model, x_val, y_val)
     results = np.array([auc, prauc, mcc, acc])
-    print(results)
+    # print(results)
 
-    # mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
-    # np.savetxt(mtx_path, results, delimiter=',')
+    mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
+    np.savetxt(mtx_path, results, delimiter=',')
 
     ######load model######
     ######################
