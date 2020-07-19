@@ -231,7 +231,7 @@ def main():
     encoding = args.encoding
     length = args.length
     # data_path = '/home/yuxuan/dp/' + gene + '_' + condition + '_' + encoding + '.csv'
-    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene,condition,encoding)
+    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition, encoding)
     # print(data_path)
 
     x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
@@ -245,7 +245,7 @@ def main():
     mcc = MCC(model, x_val, y_val)
     acc = ACC(model, x_val, y_val)
     results = np.array([auc, prauc, mcc, acc])
-    mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene,condition,encoding)
+    mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
     np.savetxt(mtx_path, results, delimiter=',')
 
     ######load model######
