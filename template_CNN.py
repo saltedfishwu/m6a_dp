@@ -18,6 +18,7 @@ from matplotlib import pyplot
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score, precision_recall_curve, auc
 
 # plt.use('Agg')
+from sklearn.model_selection import train_test_split
 
 K.set_image_data_format('channels_last')
 
@@ -94,35 +95,34 @@ def load_data(path):
     # print(x_train.shape)
 
     lst_test = []
-    X_test = np.array(test_all_1[0:90])
+    x_val = np.array(test_all_1[0:90])
 
-    for seqs in X_test:
+    for seqs in x_val:
         x = seq_to_mat(seqs)
         lst_test.append(x)
 
-    x_test = np.array(lst_test)
+    x_val = np.array(lst_test)
 
-    y_train = np.array([True, False])
+    y_train = np.array([1, 0])
     y_train = y_train.repeat(711)
     y_train = np.mat(y_train).transpose()
     # y_train = to_categorical(y_train)
     # print(y_train)
 
-    y_test = np.array([True, False])
-    y_test = y_test.repeat(45)
-    y_test = np.mat(y_test).transpose()
-    # y_test = to_categorical(y_test)
+    y_val = np.array([1, 0])
+    y_val = y_val.repeat(45)
+    y_val = np.mat(y_val).transpose()
 
-    # print(X_train)
-    # print(y_train)
-    # print(X_test)
-    # print(y_test)
+    x_val, x_test, y_val, y_test = train_test_split(x_val, y_val, test_size=0.5)
 
-    print("x_train", x_train.shape)
-    print('x_test', x_test.shape)
-    print('y_test', y_test.shape)
-    print('y_train', y_train.shape)
-    return x_train, x_test, y_test, y_train
+    print(x_val)
+    print(x_train.shape)
+    print(x_test.shape)
+    print(y_val.shape)
+    print(y_train.shape)
+    print(y_test.shape)
+
+    return x_train, x_test, x_val, y_test, y_train, y_val
 
 
 ##########################################################
@@ -156,11 +156,11 @@ def build_model(x_train):
                                    metrics=['accuracy', precision, recall])
     return one_filter_keras_model
 
-def compileModel(model, x_train, x_test, y_test, y_train):
+def compileModel(model, x_train, x_val, y_val, y_train):
     model = model
     x_train = x_train
-    x_test = x_test
-    y_test = y_test
+    x_val = x_val
+    y_val = y_val
     y_train = y_train
     earlystop = EarlyStopping(monitor='val_loss',
                               min_delta=0,
@@ -171,11 +171,11 @@ def compileModel(model, x_train, x_test, y_test, y_train):
     checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
     callbacks_list = [checkpoint, earlystop]
 
-    epoch = 100
+    epoch = 1000
     batchsize = 128
 
     history = model.fit(x_train, y_train, batch_size=batchsize, epochs=epoch,
-                        validation_data=(x_test, y_test),
+                        validation_data=(x_val, y_val),
                         callbacks=callbacks_list)
     return history
 
@@ -199,26 +199,26 @@ def lossplot(history):
     print("")
     print("The loss plot is saved \n")
 
-def MCC(model,x_test,y_test):
+def MCC(model,x_val,y_val):
     from sklearn.metrics import matthews_corrcoef
-    yhat = model.predict_classes(x_test)
-    mcc = matthews_corrcoef(y_test, yhat)
+    yhat = model.predict_classes(x_val)
+    mcc = matthews_corrcoef(y_val, yhat)
     print('MCC = {:.3f})'.format(mcc))
     return mcc
 
-def ACC(model,x_test,y_test):
+def ACC(model,x_val,y_val):
     from sklearn.metrics import accuracy_score
-    yhat = model.predict_classes(x_test)
-    acc = accuracy_score(y_test, yhat)
+    yhat = model.predict_classes(x_val)
+    acc = accuracy_score(y_val, yhat)
     print('ACC = {:.3f})'.format(acc))
     return acc
 
-def roc(model, x_test, y_test):
+def roc(model, x_val, y_val):
     print('Start drawing the roc curve \n')
     from sklearn.metrics import roc_curve
     from sklearn.metrics import auc
-    y_pred_keras = model.predict(x_test).ravel()
-    fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_test, y_pred_keras)
+    y_pred_keras = model.predict(x_val).ravel()
+    fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_val, y_pred_keras)
     auc_keras = auc(fpr_keras, tpr_keras)
 
     plt.cla()
@@ -237,15 +237,15 @@ def roc(model, x_test, y_test):
     return auc_keras
 
 
-def prcurve(model, x_test, y_test):
-    lr_probs = model.predict_proba(x_test)
-    lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
+def prcurve(model, x_val, y_val):
+    lr_probs = model.predict_proba(x_val)
+    lr_precision, lr_recall, _ = precision_recall_curve(y_val, lr_probs)
     lr_auc = auc(lr_recall, lr_precision)
 
     # summarize scores
     print('PRAUC:  auc=%.3f' % (lr_auc))
     # plot the precision-recall curves
-    no_skill = len(y_test[y_test == 1]) / len(y_test)
+    no_skill = len(y_val[y_val == 1]) / len(y_val)
     pyplot.cla()
     pyplot.plot([0, 1], [no_skill, no_skill], linestyle='--', label='No Skill')
     pyplot.plot(lr_recall, lr_precision, marker='.', label='Logistic')
@@ -276,14 +276,14 @@ def main():
     # return the data path
     data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition,length)
 
-    x_train, x_test, y_test, y_train = load_data(data_path)
+    x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
     # model = build_model(x_train)
-    # history = compileModel(model, x_train, x_test, y_test, y_train)
+    # history = compileModel(model, x_train, x_val, y_val, y_train)
     # lossplot(history)
-    # auc = roc(model, x_test, y_test)
-    # prauc = prcurve(model, x_test, y_test)
-    # mcc = MCC(model, x_test, y_test)
-    # acc = ACC(model, x_test, y_test)
+    # auc = roc(model, x_val, y_val)
+    # prauc = prcurve(model, x_val, y_val)
+    # mcc = MCC(model, x_val, y_val)
+    # acc = ACC(model, x_val, y_val)
     # results = np.array([auc, prauc, mcc, acc])
     # np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',',fmt='%.3f')
 
