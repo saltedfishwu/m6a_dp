@@ -213,6 +213,7 @@ def ACC(model, x_val, y_val):
     yhat = model.predict_classes(x_val)
     acc = accuracy_score(y_val, yhat)
     print('ACC = {:.3f}'.format(acc))
+    acc = '%.3f'%acc
     return acc
 
 
@@ -245,8 +246,10 @@ def main():
     mcc = MCC(model, x_val, y_val)
     acc = ACC(model, x_val, y_val)
     results = np.array([auc, prauc, mcc, acc])
-    mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
-    np.savetxt(mtx_path, results, delimiter=',')
+    print(results)
+
+    # mtx_path = '/home/yuxuan/dp/storeMatrix/{}_{}_{}Den.csv'.format(gene, condition, encoding)
+    # np.savetxt(mtx_path, results, delimiter=',')
 
     ######load model######
     ######################
