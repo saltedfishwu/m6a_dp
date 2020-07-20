@@ -77,7 +77,6 @@ def load_data(path):
     train_All_1 = df.iloc[:, 2]
     test_all_1 = df.iloc[:, 3]
 
-
     X_train = np.array(train_All_1)
     # a = X_train[1]
     # print(len(a))
@@ -102,19 +101,18 @@ def load_data(path):
     y_train = y_train.repeat(711)
     y_train = np.mat(y_train).transpose()
 
-
     y_val = np.array([1, 0])
     y_val = y_val.repeat(45)
     y_val = np.mat(y_val).transpose()
 
     x_val, x_test, y_val, y_test = train_test_split(x_val, y_val, test_size=0.5)
 
-    print(x_val)
-    print(x_train.shape)
-    print(x_test.shape)
-    print(y_val.shape)
-    print(y_train.shape)
-    print(y_test.shape)
+    # print(x_val)
+    # print(x_train.shape)
+    # print(x_test.shape)
+    # print(y_val.shape)
+    # print(y_train.shape)
+    # print(y_test.shape)
 
     return x_train, x_test, x_val, y_test, y_train, y_val
 
@@ -287,7 +285,7 @@ def main():
     mcc = MCC(model, x_val, y_val)
     acc = ACC(model, x_val, y_val)
     results = np.array([auc, prauc, mcc, acc])
-    np.savetxt('/home/yuxuan/dp/onehot/eif3a_full_onehot.csv', results, delimiter=',', fmt='%.3f')
+    np.savetxt('/home/yuxuan/dp/CNN/{}_{}_{}.csv'.format(gene, condition, length), results, delimiter=',', fmt='%.3f')
 
 
 if __name__ == '__main__':
