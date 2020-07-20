@@ -276,7 +276,7 @@ def main():
     length = args.length
 
     # return the data path
-    data_path = '/home/yuxuan/dp/{}_{}_{}.csv'.format(gene, condition, length)
+    data_path = '/home/yuxuan/dp/seqdata/{}_{}_{}.csv'.format(gene, condition, length)
 
     x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
     model = build_model(x_train)
