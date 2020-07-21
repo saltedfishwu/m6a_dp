@@ -2,6 +2,7 @@
 import matplotlib
 import pandas as pd
 import numpy as np
+from pandas import DataFrame
 from keras.models import Sequential
 from keras.layers.core import Dropout, Reshape, Dense, Activation, Flatten
 from keras.layers.convolutional import Conv1D, MaxPooling1D
@@ -72,24 +73,20 @@ def seq_to_mat(seq):
 def load_data(path):
     df = pd.read_csv(path)
 
-    # print(df)
-
     train_All_1 = df.iloc[:, 2]
     test_all_1 = df.iloc[:, 3]
 
     X_train = np.array(train_All_1)
-    # a = X_train[1]
-    # print(len(a))
     lt = []
     for seq in X_train:
         x = seq_to_mat(seq)
         lt.append(x)
-
     x_train = np.array(lt)
-    # print(x_train.shape)
 
+    test = DataFrame(test_all_1)
+    test = test.dropna()
     lst_test = []
-    x_val = np.array(test_all_1[0:90])
+    x_val = test_all_1[0:test.shape[0], ]
 
     for seqs in x_val:
         x = seq_to_mat(seqs)
@@ -98,23 +95,71 @@ def load_data(path):
     x_val = np.array(lst_test)
 
     y_train = np.array([1, 0])
-    y_train = y_train.repeat(711)
+    y_train = y_train.repeat(train_All_1.shape[0] / 2)
     y_train = np.mat(y_train).transpose()
 
     y_val = np.array([1, 0])
-    y_val = y_val.repeat(45)
+    y_val = y_val.repeat(test.shape[0] / 2)
     y_val = np.mat(y_val).transpose()
 
     x_val, x_test, y_val, y_test = train_test_split(x_val, y_val, test_size=0.5)
 
-    # print(x_val)
-    # print(x_train.shape)
-    # print(x_test.shape)
-    # print(y_val.shape)
-    # print(y_train.shape)
-    # print(y_test.shape)
+    print(x_val.shape)
+    print(x_train.shape)
+    print(x_test.shape)
+    print(y_val.shape)
+    print(y_train.shape)
+    print(y_test.shape)
 
     return x_train, x_test, x_val, y_test, y_train, y_val
+
+
+# def load_data(path):
+#     df = pd.read_csv(path)
+#
+#     # print(df)
+#
+#     train_All_1 = df.iloc[:, 2]
+#     test_all_1 = df.iloc[:, 3]
+#
+#     X_train = np.array(train_All_1)
+#     # a = X_train[1]
+#     # print(len(a))
+#     lt = []
+#     for seq in X_train:
+#         x = seq_to_mat(seq)
+#         lt.append(x)
+#
+#     x_train = np.array(lt)
+#     # print(x_train.shape)
+#
+#     lst_test = []
+#     x_val = np.array(test_all_1[0:90])
+#
+#     for seqs in x_val:
+#         x = seq_to_mat(seqs)
+#         lst_test.append(x)
+#
+#     x_val = np.array(lst_test)
+#
+#     y_train = np.array([1, 0])
+#     y_train = y_train.repeat(711)
+#     y_train = np.mat(y_train).transpose()
+#
+#     y_val = np.array([1, 0])
+#     y_val = y_val.repeat(45)
+#     y_val = np.mat(y_val).transpose()
+#
+#     x_val, x_test, y_val, y_test = train_test_split(x_val, y_val, test_size=0.5)
+#
+#     print(x_val.shape)
+#     print(x_train.shape)
+#     print(x_test.shape)
+#     print(y_val.shape)
+#     print(y_train.shape)
+#     print(y_test.shape)
+#
+#     return x_train, x_test, x_val, y_test, y_train, y_val
 
 
 ##########################################################
@@ -160,6 +205,7 @@ def compileModel(model, x_train, x_val, y_val, y_train, gene, condition, length)
                               patience=10,
                               verbose=1)
     ##########################################
+
     # file path need to be further explored
     ##########################################
     filepath = "weights.best_encoding.hdf5"
