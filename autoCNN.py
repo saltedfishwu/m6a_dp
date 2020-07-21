@@ -259,31 +259,31 @@ def prcurve(model, x_val, y_val, gene, condition, length):
 
 
 def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-gene', dest='gene', default=None, type=str, help='select the gene')
-    parser.add_argument('-condition', dest='condition', default=None, type=str, help='select full or exon')
-    parser.add_argument('-length', dest='length', default=None, type=str, help='specify the sequence length 41/81/121')
-    args = parser.parse_args()
+    # gene = ['eif3a', 'YTHDF3']
+    gene = ['YTHDF3']
+    condition = ['Exon', 'Full']
+    length = ['1000', '500', '250', '125']
 
-    ## assign the input value to variables
-    gene = args.gene
-    condition = args.condition
-    length = args.length
+    for x in gene:
+        # print(gene)
+        for y in condition:
+            # print(gene)
+            # print(condition)
+            for z in length:
+                data_path = '/home/yuxuan/dp/longer_seq_data/{}_{}_{}.csv'.format(x, y, z)
+                print(data_path)
 
-    # return the data path
-    data_path = '/home/yuxuan/dp/seqdata/{}_{}_{}.csv'.format(gene, condition, length)
-
-    x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
-    model = build_model(x_train)
-    history = compileModel(model, x_train, x_val, y_val, y_train, gene, condition, length)
-    lossplot(history, gene, condition, length)
-    auc = roc(model, x_val, y_val, gene, condition, length)
-    prauc = prcurve(model, x_val, y_val, gene, condition, length)
-    mcc = MCC(model, x_val, y_val)
-    acc = ACC(model, x_val, y_val)
-    results = np.array([auc, prauc, mcc, acc])
-    np.savetxt('/home/yuxuan/dp/CNN/{}_{}_{}.csv'.format(gene, condition, length), results, delimiter=',', fmt='%.3f')
+                x_train, x_test, x_val, y_test, y_train, y_val = load_data(data_path)
+                model = build_model(x_train)
+                history = compileModel(model, x_train, x_val, y_val, y_train, x, y, z)
+                lossplot(history, x, y, z)
+                auc = roc(model, x_val, y_val, x, y, z)
+                prauc = prcurve(model, x_val, y_val, x, y, z)
+                mcc = MCC(model, x_val, y_val)
+                acc = ACC(model, x_val, y_val)
+                results = np.array([auc, prauc, mcc, acc])
+                np.savetxt('/home/yuxuan/dp/CNN/longseq/{}_{}_{}.csv'.format(x, y, z), results, delimiter=',',
+                           fmt='%.3f')
 
 
 if __name__ == '__main__':
